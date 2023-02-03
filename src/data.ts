@@ -1,10 +1,3 @@
-// interface OptionsInterface {
-//   category: [{ value: number; lable: string }];
-//   weigth: [{ value: number; lable: string }];
-//   activity: [{ value: number; lable: string }];
-//   coffee: [{ value: number; lable: string }];
-// }
-
 interface Select {
   value: number;
   label: string;
@@ -16,18 +9,6 @@ interface Category {
   activity: Select[];
   coffee: Select[];
 }
-
-// type MyType = {
-//   value: number;
-//   label: string;
-// }
-
-// type MyGroupType = {
-//   [key:string]: MyType;
-// }
-
-// type Point = { value: number; label: string };
-// type P = keyof Point;
 
 export const optionsData: Category = {
   category: [
