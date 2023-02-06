@@ -1,33 +1,37 @@
-import Select from "react-select";
+import { FormEvent } from "react";
+import styled from "styled-components";
 
 interface PropsInterface {
-  options: any;
-  value: { value: number; label: string }[];
-  onChange: (value: number) => void;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
 }
 
 export const MySelect = (props: PropsInterface) => {
   return (
-    <Select
-      styles={customStyles}
-      options={props.options}
-      value={props.value}
-      onChange={(e) => {
+    <SelectContainer
+      onChange={(e: FormEvent<HTMLSelectElement>) => {
         if (e === null) return;
-        props.onChange(e.value);
+        props.onChange(e.currentTarget.value);
       }}
-    />
+    >
+      {props.options.map((el) => (
+        <option key={el.value} value={el.value}>
+          {el.label}
+        </option>
+      ))}
+    </SelectContainer>
   );
 };
 
-const customStyles = {
-  option: () => ({
-    color: "black",
-    fontSize: "10px",
-    padding: "4px",
-    paddingLeft: "2%",
-    "&:hover": {
-      background: "blue",
-    },
-  }),
-};
+const SelectContainer = styled.select`
+  width: 100%;
+  height: 30px;
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid gray;
+  outline: none;
+  &:focus {
+    border-color: blue;
+  }
+`;

@@ -1,36 +1,53 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { optionsData } from "../data";
-import { FiSmile } from "react-icons/fi";
-import { BsEmojiSunglasses } from "react-icons/bs";
+import { optionsData2 } from "../data";
 import { MySelect } from "./MySelect";
+import { UserInputData } from "../data";
 
-type DatyTypes = {
-  weight: number;
-  category: number;
-  overWeight: number;
-  activity: number;
-  coffee: number;
-  weather: boolean;
-};
+export const HydrationCalculator = () => {
+  const [date2, setDate2] = useState<UserInputData>({});
+  // const [error, setError] = useState<string[]>([]);
+  // const [toggle, setToggle] = useState(false);
 
-export const Calculator = () => {
-  const [date, setDate] = useState<DatyTypes>({
-    weight: 0,
-    category: 0,
-    overWeight: 0,
-    activity: 0,
-    coffee: 0,
-    weather: false,
+  const [error, setError] = useState<{ fields: string[]; isClicked: boolean }>({
+    fields: [],
+    isClicked: false,
   });
 
-  let waterCalculation = () => {
-    let sum =
-      date.category * date.weight +
-      date.overWeight +
-      date.activity +
-      date.coffee;
-    return date.weather ? sum * 1.1 + " ml." : Math.round(sum) + " ml."; //takto?
+  const waterCalculation = () => {
+    const sum = optionsData2.reduce((acc, el) => {
+      const option = el.options.find((option) => option.id === date2[el.type]);
+      return option ? acc + option.fn(date2) : acc;
+    }, 0);
+
+    const weatherOption = optionsData2.find((el) => el.type === "weather");
+    if (!weatherOption) return sum;
+
+    const weatherFactor = weatherOption.options.find(
+      (option) => option.id === date2[weatherOption.type]
+    );
+
+    if (Number.isNaN(sum)) {
+      setError({ fields: ["Zadejte vaši váhu"], isClicked: true });
+    }
+    return weatherFactor ? sum * weatherFactor.fn(date2) : sum;
+  };
+
+  const handleButtonClick = () => {
+    const missingFields = optionsData2
+      .filter((el) => !Object.keys(date2).includes(el.type))
+      .map((el) => el.question);
+
+    // setError(missingFields);
+    setError({ fields: missingFields, isClicked: true });
+    // setToggle(true);
+  };
+
+  const pickValue = (key: string, value: number) => {
+    setDate2({
+      ...date2,
+      [key]: value,
+    });
   };
 
   return (
@@ -39,89 +56,50 @@ export const Calculator = () => {
         <h1>Kalkulačka pitného režimu</h1>
         <Wrapper>
           <p>Zadejte vaši váhu</p>
-          <input
+          <Input
             type="range"
             min="1"
             max="200"
-            value={date.weight}
-            onChange={(event) =>
-              setDate((prevState) => ({
-                ...prevState,
-                weight: +event.target.value,
-              }))
-            }
-            // onChange={(event) => setWeight(+event.target.value)}
+            value={date2.hasOwnProperty("weight") ? date2["weight"] : []}
+            onChange={(event) => pickValue("weight", +event.target.value)}
           />
-          <p>{date.weight} kg</p>
+          <p>{date2.weight} kg</p>
         </Wrapper>
-        <Wrapper>
-          <p>Vyberte si vaši kategorii</p>
-          <MySelect
-            options={optionsData.category}
-            value={optionsData.category.filter(
-              (option) => option.value === date.category
-            )}
-            onChange={(value) =>
-              setDate((prevState) => ({ ...prevState, category: value }))
-            }
-          />
-        </Wrapper>
-        <Wrapper>
-          <p>Máte nadváhu?</p>
-          <MySelect
-            options={optionsData.weigth}
-            value={optionsData.weigth.filter(
-              (option) => option.value === date.weight
-            )}
-            onChange={(value) =>
-              setDate((prevState) => ({ ...prevState, weight: value }))
-            }
-          />
-        </Wrapper>
-        <Wrapper>
-          <p>Plánujete dnes pohybovou aktivitu?</p>
-          <MySelect
-            options={optionsData.activity}
-            value={optionsData.activity.filter(
-              (option) => option.value === date.activity
-            )}
-            onChange={(value) =>
-              setDate((prevState) => ({ ...prevState, activity: value }))
-            }
-          />
-        </Wrapper>
-        <Wrapper>
-          <p>Pijete kávu?</p>
-          <MySelect
-            options={optionsData.coffee}
-            value={optionsData.coffee.filter(
-              (option) => option.value === date.coffee
-            )}
-            onChange={(value) =>
-              setDate((prevState) => ({ ...prevState, coffee: value }))
-            }
-          />
-        </Wrapper>
-        <p>A co dnešní počasí?</p>
-        <WrapperButtons>
-          <Button
-            onClick={() =>
-              setDate((prevState) => ({ ...prevState, weather: false }))
-            }
-          >
-            <FiSmile />
-          </Button>
-          <Button
-            onClick={() =>
-              setDate((prevState) => ({ ...prevState, weather: true }))
-            }
-          >
-            <BsEmojiSunglasses />
-          </Button>
-        </WrapperButtons>
-
-        <h2>Dnes byste měli vypít</h2>
-        <h1>{waterCalculation()}</h1>
+        {optionsData2.map((el) => (
+          <Wrapper key={el.type}>
+            <p>{el.question}</p>
+            <MySelect
+              options={el.options.map((el) => ({
+                value: el.id.toString(),
+                label: el.label,
+              }))}
+              onChange={(value) => pickValue(el.type, parseInt(value))}
+            />
+          </Wrapper>
+        ))}
+        <Button onClick={handleButtonClick}> See result</Button>
+        <Result>
+          {error.isClicked ? (
+            <ResultText>
+              {error.fields.length >= 1 ? (
+                <ResultError>
+                  Neodpovedeli jste na tyto otazky:{" "}
+                  {error.fields.map((el) => (
+                    <ResultErrorItem key={el}>{el}</ResultErrorItem>
+                  ))}
+                </ResultError>
+              ) : (
+                <ResultSuccess>
+                  <h2>
+                    Denně byste měli vypít minimálně{" "}
+                    {(waterCalculation() / 1000).toFixed(1)} l vody.
+                  </h2>
+                  {/*<h1>{Math.round(waterCalculation())} ml.</h1>*/}
+                </ResultSuccess>
+              )}
+            </ResultText>
+          ) : null}
+        </Result>
       </Container>
     </Div>
   );
@@ -132,35 +110,82 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  background-color: #f2f2f2;
+  padding: 20px;
+  border-radius: 10px;
 `;
+
 const Wrapper = styled.div`
+  width: 50%;
   padding: 5px;
   display: flex;
   flex-direction: column;
   text-align: center;
   cursor: pointer;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px 0px #ccc;
 `;
+
 const Div = styled.div`
   margin: 0 auto;
   width: 700px;
-  height: 700px;
+  height: 100%;
   text-align: center;
-  overflow: auto;
-  border: 1px solid gray;
   border-radius: 10px;
+  font-size: 16px;
+  box-shadow: 0px 0px 20px 0px #ccc;
 `;
 
-const WrapperButtons = styled.div`
-  padding: 5px;
-  display: flex;
-  flex-direction: row;
-  text-align: center;
-  gap: 5px;
+const Input = styled.input`
+  width: 80%;
+  height: 20px;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid gray;
+  outline: none;
 `;
 
 const Button = styled.button`
-  display: flex;
-  font-size: 30px;
-  border-radius: 10px;
-  color: "white";
+  width: 40%;
+  height: 40px;
+  margin: 20px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #1e90ff;
+  outline: none;
+  background-color: #1e90ff;
+  color: white;
+  cursor: pointer;
+  &:hover {
+    background-color: white;
+    color: #1e90ff;
+  }
+`;
+
+const Result = styled.div`
+  margin: 20px 0;
+  padding: 10px;
+  text-align: center;
+`;
+
+const ResultText = styled.h1`
+  font-size: 20px;
+  color: gray;
+`;
+
+const ResultError = styled.div`
+  margin: 20px 0;
+  padding: 10px;
+  text-align: left;
+`;
+const ResultErrorItem = styled.div`
+  font-size: 16px;
+  color: red;
+`;
+const ResultSuccess = styled.div`
+  font-size: 16px;
+  color: dodgerblue;
 `;

@@ -1,12 +1,13 @@
 import "./App.css";
-import { Calculator } from "./components/Calculator";
+import { HydrationCalculator } from "./components/Calculator";
 import { createGlobalStyle } from "styled-components";
 
 function App() {
   return (
     <div>
       {" "}
-      <Calculator />;
+      <div></div> <div></div>
+      <HydrationCalculator />;
       <GlobalStyle />;
     </div>
   );
@@ -17,7 +18,7 @@ export default App;
 const GlobalStyle = createGlobalStyle`
   body {
     box-sizing: border-box;
-    background-color: #fffff;
+    background-color: #ffff;
     font-family: 'Montserrat', sans-serif;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -27,5 +28,6 @@ const GlobalStyle = createGlobalStyle`
   }
   html {
     font-size: 70%;
+    font-family: 'Montserrat', sans-serif;
   }
 `;
