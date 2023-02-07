@@ -1,37 +1,34 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { calculatorData } from "../data";
-import { MySelect } from "./MySelect";
-import { UserInputData } from "../data";
+import { MySelect } from "../MySelect";
+import { CalculatorResult } from "./CalculatorResult";
 
+export interface UserInputData {
+  [key: string]: number;
+}
 export const HydrationCalculator = () => {
   const [userInput, setUserInput] = useState<UserInputData>({});
-  const [selected, setSelected] = useState({});
-
   const calculateWaterIntake = () => {
-    let totalLiters = calculatorData.reduce((sumOfLitres, question) => {
+    let totalSumOfLitres = 0;
+
+    calculatorData.forEach((question) => {
       const chosenOption = question.options.find(
         (option) => option.id === userInput[question.type]
       );
-      if (!chosenOption) return sumOfLitres;
-      return question.type === "weather"
-        ? sumOfLitres * chosenOption.fn(userInput)
-        : sumOfLitres + chosenOption.fn(userInput);
-    }, 0);
+      if (!chosenOption) return;
+      totalSumOfLitres = chosenOption.fn(userInput, totalSumOfLitres);
+    });
 
-    return totalLiters;
+    return totalSumOfLitres;
   };
 
   const updateData = (questionType: string, value: number) => {
-    setSelected({ ...selected, [questionType]: value });
     setUserInput({
       ...userInput,
       [questionType]: value,
     });
   };
-
-  const userInputKeys = Object.keys(userInput);
-  const lastOptionType = calculatorData[calculatorData.length - 1].type;
 
   return (
     <Div>
@@ -50,9 +47,10 @@ export const HydrationCalculator = () => {
           />
           <p>{userInput.weight} kg</p>
         </Wrapper>
-        {calculatorData.map((questionSelector) => (
-          <>
-            {userInputKeys.includes(questionSelector.dependency) ? (
+
+        {calculatorData.map((questionSelector) => {
+          if (Object.keys(userInput).includes(questionSelector.dependency)) {
+            return (
               <Wrapper key={questionSelector.type}>
                 <p>{questionSelector.question}</p>
                 <MySelect
@@ -65,17 +63,12 @@ export const HydrationCalculator = () => {
                   }
                 />
               </Wrapper>
-            ) : null}
-          </>
-        ))}
+            );
+          } else return null;
+        })}
         <Result>
-          {userInputKeys.includes(lastOptionType) ? (
-            <ResultSuccess>
-              <h2>
-                Denně byste měli vypít minimálně{" "}
-                {(calculateWaterIntake() / 1000).toFixed(1)} l vody.
-              </h2>
-            </ResultSuccess>
+          {Object.keys(userInput).length > calculatorData.length ? (
+            <CalculatorResult totalLitres={calculateWaterIntake()} />
           ) : null}
         </Result>
       </Container>

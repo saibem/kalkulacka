@@ -1,12 +1,10 @@
 import "./App.css";
-import { HydrationCalculator } from "./components/Calculator";
+import { HydrationCalculator } from "./components/Calculator/Calculator";
 import { createGlobalStyle } from "styled-components";
 
 function App() {
   return (
     <div>
-      {" "}
-      <div></div> <div></div>
       <HydrationCalculator />;
       <GlobalStyle />;
     </div>
