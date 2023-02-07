@@ -14,9 +14,9 @@ export const MySelect = (props: PropsInterface) => {
         props.onChange(e.currentTarget.value);
       }}
     >
-      {props.options.map((el) => (
-        <option key={el.value} value={el.value}>
-          {el.label}
+      {props.options.map((question) => (
+        <option key={question.value} value={question.value}>
+          {question.label}
         </option>
       ))}
     </SelectContainer>
